@@ -1,0 +1,16 @@
+[Unit]
+Description=irodsfs-monitor, an iRODS FUSE Lite monitoring service
+After=network-online.target nss-lookup.target
+
+[Service]
+Type=forking
+KillMode=process
+
+ExecStart=/usr/bin/irodsfs-monitor
+ExecReload=
+
+EnvironmentFile=/etc/irodsfs-monitor/irodsfs-monitor.conf
+User=irodsfsmonitor
+
+[Install]
+WantedBy=multi-user.target
