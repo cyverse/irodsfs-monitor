@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"time"
 
 	"github.com/cyverse/irodsfs-monitor/types"
 	"github.com/gorilla/mux"
@@ -40,7 +41,7 @@ func NewMonitorService(config *Config) *MonitorService {
 	return service
 }
 
-// AddHandlers adds web server handlers
+// addHandlers adds web server handlers
 func (svc *MonitorService) addHandlers() {
 	svc.Router.HandleFunc("/instances", svc.addInstance).Methods("POST")
 	svc.Router.HandleFunc("/instances", svc.listInstances).Methods("GET")
@@ -51,10 +52,12 @@ func (svc *MonitorService) addHandlers() {
 	svc.Router.HandleFunc("/transfers/{instance_id}", svc.listTransfersForInstance).Methods("GET")
 }
 
+// Init initializes the service
 func (svc *MonitorService) Init() error {
 	return nil
 }
 
+// Start starts the service
 func (svc *MonitorService) Start() error {
 	logger := log.WithFields(log.Fields{
 		"package":  "service",
@@ -88,6 +91,19 @@ func (svc *MonitorService) Destroy() {
 	}
 }
 
+func (svc *MonitorService) getClientIP(r *http.Request) string {
+	addr := r.Header.Get("X-Real-Ip")
+	if addr == "" {
+		addr = r.Header.Get("X-Forwarded-For")
+	}
+
+	if addr == "" {
+		addr = r.RemoteAddr
+	}
+
+	return addr
+}
+
 func (svc *MonitorService) addInstance(w http.ResponseWriter, r *http.Request) {
 	logger := log.WithFields(log.Fields{
 		"package":  "service",
@@ -111,6 +127,11 @@ func (svc *MonitorService) addInstance(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusBadRequest)
 		w.Write([]byte(err.Error()))
 		return
+	}
+
+	instance.ClientHostIP = svc.getClientIP(r)
+	if instance.CreationTime.IsZero() {
+		instance.CreationTime = time.Now().UTC()
 	}
 
 	svc.Storage.AddInstance(instance)

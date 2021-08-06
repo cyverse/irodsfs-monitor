@@ -18,7 +18,8 @@ type ReportInstance struct {
 	MetadataCacheCleanupTime string `json:"metadata_cache_cleanup_time"`
 	FileBufferSizeMax        int64  `json:"file_buffer_size_max"`
 
-	ClientHostName string `json:"client_hostname,omitempty"`
+	ClientHostname string `json:"client_hostname,omitempty"`
+	ClientHostIP   string `json:"client_host_ip,omitempty"` // filled by server
 	InstanceID     string `json:"instance_id"`
 
 	CreationTime time.Time `json:"creation_time"`
