@@ -37,10 +37,6 @@ func (client *APIClient) makeAPIURL(apiPath string) string {
 	return u + apiPath
 }
 
-// svc.Router.HandleFunc("/transfers", svc.addTransfer).Methods("POST")
-// svc.Router.HandleFunc("/transfers", svc.listTransfers).Methods("GET")
-// svc.Router.HandleFunc("/transfers/{instance_id}", svc.listTransfersForInstance).Methods("GET")
-
 // AddInstance registers an instance
 func (client *APIClient) AddInstance(instance *types.ReportInstance) (string, error) {
 	logger := log.WithFields(log.Fields{

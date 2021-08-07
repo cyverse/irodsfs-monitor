@@ -22,7 +22,10 @@ type ReportInstance struct {
 	ClientHostIP   string `json:"client_host_ip,omitempty"` // filled by server
 	InstanceID     string `json:"instance_id"`
 
-	CreationTime time.Time `json:"creation_time"`
+	CreationTime     time.Time `json:"creation_time"`
+	LastActivityTime time.Time `json:"last_activity_time,omitempty"`
+	TerminationTime  time.Time `json:"termination_time,omitempty"` // may be empty
+	Terminated       bool      `json:"terminated,omitempty"`
 }
 
 // FileBlock is an internal struct used in other structs

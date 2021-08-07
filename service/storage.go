@@ -1,6 +1,9 @@
 package service
 
 import (
+	"fmt"
+	"time"
+
 	"github.com/cyverse/irodsfs-monitor/types"
 	log "github.com/sirupsen/logrus"
 )
@@ -65,6 +68,30 @@ func (storage *Storage) AddInstance(instance types.ReportInstance) {
 	storage.Instances[instance.InstanceID] = instance
 }
 
+// UpdateInstanceLastActivityTime updates the instance's last activity time
+func (storage *Storage) UpdateInstanceLastActivityTime(instanceID string) error {
+	if instance, ok := storage.Instances[instanceID]; ok {
+		instance.LastActivityTime = time.Now().UTC()
+		storage.Instances[instanceID] = instance
+		return nil
+	}
+
+	return fmt.Errorf("unable to find an instance for ID %s", instanceID)
+}
+
+// TerminateInstance sets the instance terminated
+func (storage *Storage) TerminateInstance(instanceID string) error {
+	if instance, ok := storage.Instances[instanceID]; ok {
+		instance.Terminated = true
+		instance.LastActivityTime = time.Now().UTC()
+		instance.TerminationTime = time.Now().UTC()
+		storage.Instances[instanceID] = instance
+		return nil
+	}
+
+	return fmt.Errorf("unable to find an instance for ID %s", instanceID)
+}
+
 // ListInstances lists instances
 func (storage *Storage) ListFileTransfers() []types.ReportFileTransfer {
 	result := []types.ReportFileTransfer{}
@@ -85,11 +112,16 @@ func (storage *Storage) ListFileTransfersForInstance(instanceID string) []types.
 }
 
 // AddInstance adds an instance
-func (storage *Storage) AddFileTransfer(transfer types.ReportFileTransfer) {
-	if existingList, ok := storage.FileTransfers[transfer.InstanceID]; ok {
-		existingList = append(existingList, transfer)
-		storage.FileTransfers[transfer.InstanceID] = existingList
-	} else {
-		storage.FileTransfers[transfer.InstanceID] = []types.ReportFileTransfer{transfer}
+func (storage *Storage) AddFileTransfer(transfer types.ReportFileTransfer) error {
+	if _, ok := storage.Instances[transfer.InstanceID]; ok {
+		if existingList, ok2 := storage.FileTransfers[transfer.InstanceID]; ok2 {
+			existingList = append(existingList, transfer)
+			storage.FileTransfers[transfer.InstanceID] = existingList
+		} else {
+			storage.FileTransfers[transfer.InstanceID] = []types.ReportFileTransfer{transfer}
+		}
+		return nil
 	}
+
+	return fmt.Errorf("unable to find an instance for ID %s", transfer.InstanceID)
 }

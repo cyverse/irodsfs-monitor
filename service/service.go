@@ -46,6 +46,7 @@ func (svc *MonitorService) addHandlers() {
 	svc.Router.HandleFunc("/instances", svc.addInstance).Methods("POST")
 	svc.Router.HandleFunc("/instances", svc.listInstances).Methods("GET")
 	svc.Router.HandleFunc("/instances/{instance_id}", svc.getInstance).Methods("GET")
+	svc.Router.HandleFunc("/instances/{instance_id}", svc.terminateInstance).Methods("DELETE")
 
 	svc.Router.HandleFunc("/transfers", svc.addTransfer).Methods("POST")
 	svc.Router.HandleFunc("/transfers", svc.listTransfers).Methods("GET")
@@ -129,10 +130,15 @@ func (svc *MonitorService) addInstance(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	nowUTC := time.Now().UTC()
+
 	instance.ClientHostIP = svc.getClientIP(r)
 	if instance.CreationTime.IsZero() {
-		instance.CreationTime = time.Now().UTC()
+		instance.CreationTime = nowUTC
 	}
+
+	instance.Terminated = false
+	instance.LastActivityTime = nowUTC
 
 	svc.Storage.AddInstance(instance)
 	w.WriteHeader(http.StatusAccepted)
@@ -205,6 +211,33 @@ func (svc *MonitorService) getInstance(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func (svc *MonitorService) terminateInstance(w http.ResponseWriter, r *http.Request) {
+	logger := log.WithFields(log.Fields{
+		"package":  "service",
+		"function": "MonitorService.terminateInstance",
+	})
+
+	logger.Infof("Page access request from %s to %s", r.RemoteAddr, r.RequestURI)
+
+	varMap := mux.Vars(r)
+	instanceID, ok := varMap["instance_id"]
+	if !ok {
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte("instance_id is not given"))
+		return
+	}
+
+	err := svc.Storage.TerminateInstance(instanceID)
+	if err != nil {
+		logger.Error(err)
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte(err.Error()))
+		return
+	}
+
+	w.WriteHeader(http.StatusAccepted)
+}
+
 func (svc *MonitorService) addTransfer(w http.ResponseWriter, r *http.Request) {
 	logger := log.WithFields(log.Fields{
 		"package":  "service",
@@ -230,7 +263,22 @@ func (svc *MonitorService) addTransfer(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	svc.Storage.AddFileTransfer(transfer)
+	err = svc.Storage.AddFileTransfer(transfer)
+	if err != nil {
+		logger.Error(err)
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte(err.Error()))
+		return
+	}
+
+	err = svc.Storage.UpdateInstanceLastActivityTime(transfer.InstanceID)
+	if err != nil {
+		logger.Error(err)
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte(err.Error()))
+		return
+	}
+
 	w.WriteHeader(http.StatusAccepted)
 }
 
