@@ -151,6 +151,34 @@ func (client *APIClient) GetInstance(instanceID string) (types.ReportInstance, e
 	return instance, nil
 }
 
+// TerminateInstance sets the instance terminated
+func (client *APIClient) TerminateInstance(instanceID string) error {
+	logger := log.WithFields(log.Fields{
+		"package":  "client",
+		"function": "APIClient.TerminateInstance",
+	})
+
+	url := client.makeAPIURL(fmt.Sprintf("/instances/%s", instanceID))
+	req, err := http.NewRequest("DELETE", url, nil)
+	if err != nil {
+		logger.Error(err)
+		return err
+	}
+
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		logger.Error(err)
+		return err
+	}
+
+	if resp.StatusCode != http.StatusAccepted && resp.StatusCode != http.StatusOK {
+		logger.Error(fmt.Sprintf("service error returned - %s", resp.Status))
+		return fmt.Errorf("service error returned - %s", resp.Status)
+	}
+
+	return nil
+}
+
 // AddFileTransfer adds a file transfer
 func (client *APIClient) AddFileTransfer(transfer *types.ReportFileTransfer) error {
 	logger := log.WithFields(log.Fields{
