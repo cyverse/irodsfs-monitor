@@ -111,7 +111,7 @@ func (svc *MonitorService) addInstance(w http.ResponseWriter, r *http.Request) {
 		"function": "MonitorService.addInstance",
 	})
 
-	logger.Infof("Page access request from %s to %s", r.RemoteAddr, r.RequestURI)
+	logger.Infof("Page access request (%s) from %s to %s", r.Method, r.RemoteAddr, r.RequestURI)
 	var instance types.ReportInstance
 
 	requestJSON, err := ioutil.ReadAll(r.Body)
@@ -150,7 +150,7 @@ func (svc *MonitorService) listInstances(w http.ResponseWriter, r *http.Request)
 		"function": "MonitorService.listInstances",
 	})
 
-	logger.Infof("Page access request from %s to %s", r.RemoteAddr, r.RequestURI)
+	logger.Infof("Page access request (%s) from %s to %s", r.Method, r.RemoteAddr, r.RequestURI)
 
 	instances := svc.Storage.ListInstances()
 	responseJSON, err := json.Marshal(instances)
@@ -177,7 +177,7 @@ func (svc *MonitorService) getInstance(w http.ResponseWriter, r *http.Request) {
 		"function": "MonitorService.getInstance",
 	})
 
-	logger.Infof("Page access request from %s to %s", r.RemoteAddr, r.RequestURI)
+	logger.Infof("Page access request (%s) from %s to %s", r.Method, r.RemoteAddr, r.RequestURI)
 
 	varMap := mux.Vars(r)
 	instanceID, ok := varMap["instance_id"]
@@ -217,7 +217,7 @@ func (svc *MonitorService) terminateInstance(w http.ResponseWriter, r *http.Requ
 		"function": "MonitorService.terminateInstance",
 	})
 
-	logger.Infof("Page access request from %s to %s", r.RemoteAddr, r.RequestURI)
+	logger.Infof("Page access request (%s) from %s to %s", r.Method, r.RemoteAddr, r.RequestURI)
 
 	varMap := mux.Vars(r)
 	instanceID, ok := varMap["instance_id"]
@@ -244,7 +244,7 @@ func (svc *MonitorService) addTransfer(w http.ResponseWriter, r *http.Request) {
 		"function": "MonitorService.addTransfer",
 	})
 
-	logger.Infof("Page access request from %s to %s", r.RemoteAddr, r.RequestURI)
+	logger.Infof("Page access request (%s) from %s to %s", r.Method, r.RemoteAddr, r.RequestURI)
 	var transfer types.ReportFileTransfer
 
 	requestJSON, err := ioutil.ReadAll(r.Body)
@@ -288,7 +288,7 @@ func (svc *MonitorService) listTransfers(w http.ResponseWriter, r *http.Request)
 		"function": "MonitorService.listTransfers",
 	})
 
-	logger.Infof("Page access request from %s to %s", r.RemoteAddr, r.RequestURI)
+	logger.Infof("Page access request (%s) from %s to %s", r.Method, r.RemoteAddr, r.RequestURI)
 
 	transfers := svc.Storage.ListFileTransfers()
 	responseJSON, err := json.Marshal(transfers)
@@ -315,7 +315,7 @@ func (svc *MonitorService) listTransfersForInstance(w http.ResponseWriter, r *ht
 		"function": "MonitorService.listTransfersForInstance",
 	})
 
-	logger.Infof("Page access request from %s to %s", r.RemoteAddr, r.RequestURI)
+	logger.Infof("Page access request (%s) from %s to %s", r.Method, r.RemoteAddr, r.RequestURI)
 
 	varMap := mux.Vars(r)
 	instanceID, ok := varMap["instance_id"]

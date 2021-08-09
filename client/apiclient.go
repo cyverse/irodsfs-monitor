@@ -67,7 +67,15 @@ func (client *APIClient) AddInstance(instance *types.ReportInstance) (string, er
 	}
 
 	url := client.makeAPIURL("/instances")
-	resp, err := http.Post(url, "application/json", bytes.NewBuffer(JSONBytes))
+	req, err := http.NewRequest("POST", url, nil)
+	if err != nil {
+		logger.Error(err)
+		return "", err
+	}
+
+	req.Body = ioutil.NopCloser(bytes.NewReader(JSONBytes))
+	httpClient := &http.Client{}
+	resp, err := httpClient.Do(req)
 	if err != nil {
 		logger.Error(err)
 		return "", err
@@ -89,7 +97,14 @@ func (client *APIClient) ListInstances(instance *types.ReportInstance) ([]types.
 	})
 
 	url := client.makeAPIURL("/instances")
-	resp, err := http.Get(url)
+	req, err := http.NewRequest("GET", url, nil)
+	if err != nil {
+		logger.Error(err)
+		return nil, err
+	}
+
+	httpClient := &http.Client{}
+	resp, err := httpClient.Do(req)
 	if err != nil {
 		logger.Error(err)
 		return nil, err
@@ -124,7 +139,14 @@ func (client *APIClient) GetInstance(instanceID string) (types.ReportInstance, e
 	})
 
 	url := client.makeAPIURL(fmt.Sprintf("/instances/%s", instanceID))
-	resp, err := http.Get(url)
+	req, err := http.NewRequest("GET", url, nil)
+	if err != nil {
+		logger.Error(err)
+		return types.ReportInstance{}, err
+	}
+
+	httpClient := &http.Client{}
+	resp, err := httpClient.Do(req)
 	if err != nil {
 		logger.Error(err)
 		return types.ReportInstance{}, err
@@ -165,7 +187,8 @@ func (client *APIClient) TerminateInstance(instanceID string) error {
 		return err
 	}
 
-	resp, err := http.DefaultClient.Do(req)
+	httpClient := &http.Client{}
+	resp, err := httpClient.Do(req)
 	if err != nil {
 		logger.Error(err)
 		return err
@@ -197,7 +220,15 @@ func (client *APIClient) AddFileTransfer(transfer *types.ReportFileTransfer) err
 	}
 
 	url := client.makeAPIURL("/transfers")
-	resp, err := http.Post(url, "application/json", bytes.NewBuffer(JSONBytes))
+	req, err := http.NewRequest("POST", url, nil)
+	if err != nil {
+		logger.Error(err)
+		return err
+	}
+
+	httpClient := &http.Client{}
+	req.Body = ioutil.NopCloser(bytes.NewReader(JSONBytes))
+	resp, err := httpClient.Do(req)
 	if err != nil {
 		logger.Error(err)
 		return err
@@ -219,7 +250,14 @@ func (client *APIClient) ListFileTransfers() ([]types.ReportFileTransfer, error)
 	})
 
 	url := client.makeAPIURL("/transfers")
-	resp, err := http.Get(url)
+	req, err := http.NewRequest("GET", url, nil)
+	if err != nil {
+		logger.Error(err)
+		return nil, err
+	}
+
+	httpClient := &http.Client{}
+	resp, err := httpClient.Do(req)
 	if err != nil {
 		logger.Error(err)
 		return nil, err
@@ -254,7 +292,14 @@ func (client *APIClient) ListFileTransfersForInstance(instanceID string) ([]type
 	})
 
 	url := client.makeAPIURL(fmt.Sprintf("/transfers/%s", instanceID))
-	resp, err := http.Get(url)
+	req, err := http.NewRequest("GET", url, nil)
+	if err != nil {
+		logger.Error(err)
+		return nil, err
+	}
+
+	httpClient := &http.Client{}
+	resp, err := httpClient.Do(req)
 	if err != nil {
 		logger.Error(err)
 		return nil, err
