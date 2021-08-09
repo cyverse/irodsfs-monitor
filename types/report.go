@@ -42,8 +42,11 @@ type ReportFileTransfer struct {
 	FilePath string `json:"file_path"`
 	FileSize int64  `json:"file_size"`
 
-	TransferOrder []FileBlock `json:"transfer_order"`
-	TransferSize  int64       `json:"transfer_size"`
+	TransferBlocks     []FileBlock `json:"transfer_blocks"`
+	TransferSize       int64       `json:"transfer_size"`
+	LargestBlockSize   int64       `json:"largest_block_size"`
+	SmallestBlockSize  int64       `json:"smallest_block_size"`
+	TransferBlockCount int64       `json:"transfer_block_count"`
 
 	FileOpenTime  time.Time `json:"file_open_time"`
 	FileCloseTime time.Time `json:"file_close_time"`
