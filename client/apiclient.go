@@ -73,6 +73,7 @@ func (client *APIClient) AddInstance(instance *types.ReportInstance) (string, er
 		return "", err
 	}
 
+	req.Header.Set("Content-Type", "application/json; charset=UTF-8")
 	req.Body = ioutil.NopCloser(bytes.NewReader(JSONBytes))
 	httpClient := &http.Client{}
 	resp, err := httpClient.Do(req)
@@ -187,6 +188,8 @@ func (client *APIClient) TerminateInstance(instanceID string) error {
 		return err
 	}
 
+	req.Header.Set("Content-Type", "application/json; charset=UTF-8")
+
 	httpClient := &http.Client{}
 	resp, err := httpClient.Do(req)
 	if err != nil {
@@ -225,6 +228,8 @@ func (client *APIClient) AddFileTransfer(transfer *types.ReportFileTransfer) err
 		logger.Error(err)
 		return err
 	}
+
+	req.Header.Set("Content-Type", "application/json; charset=UTF-8")
 
 	httpClient := &http.Client{}
 	req.Body = ioutil.NopCloser(bytes.NewReader(JSONBytes))
