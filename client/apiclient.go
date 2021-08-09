@@ -34,6 +34,10 @@ func (client *APIClient) makeAPIURL(apiPath string) string {
 		u = u + "/"
 	}
 
+	if strings.HasPrefix(apiPath, "/") {
+		return u + apiPath[1:]
+	}
+
 	return u + apiPath
 }
 
