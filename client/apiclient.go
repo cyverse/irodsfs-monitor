@@ -18,12 +18,14 @@ import (
 // APIClient is a struct that holds connection information of a API client
 type APIClient struct {
 	APIRootURL string
+	Timeout    time.Duration
 }
 
 // NewAPIClient creates a new API client
-func NewAPIClient(apiRootURL string) *APIClient {
+func NewAPIClient(apiRootURL string, timeout time.Duration) *APIClient {
 	return &APIClient{
 		APIRootURL: apiRootURL,
+		Timeout:    timeout,
 	}
 }
 
@@ -79,7 +81,9 @@ func (client *APIClient) AddInstance(instance *types.ReportInstance) (string, er
 
 	req.Header.Set("Content-Type", "application/json; charset=UTF-8")
 	req.Body = ioutil.NopCloser(bytes.NewReader(JSONBytes))
-	httpClient := &http.Client{}
+	httpClient := &http.Client{
+		Timeout: client.Timeout,
+	}
 	resp, err := httpClient.Do(req)
 	if err != nil {
 		logger.Error(err)
@@ -108,7 +112,9 @@ func (client *APIClient) ListInstances(instance *types.ReportInstance) ([]types.
 		return nil, err
 	}
 
-	httpClient := &http.Client{}
+	httpClient := &http.Client{
+		Timeout: client.Timeout,
+	}
 	resp, err := httpClient.Do(req)
 	if err != nil {
 		logger.Error(err)
@@ -150,7 +156,9 @@ func (client *APIClient) GetInstance(instanceID string) (types.ReportInstance, e
 		return types.ReportInstance{}, err
 	}
 
-	httpClient := &http.Client{}
+	httpClient := &http.Client{
+		Timeout: client.Timeout,
+	}
 	resp, err := httpClient.Do(req)
 	if err != nil {
 		logger.Error(err)
@@ -194,7 +202,9 @@ func (client *APIClient) TerminateInstance(instanceID string) error {
 
 	req.Header.Set("Content-Type", "application/json; charset=UTF-8")
 
-	httpClient := &http.Client{}
+	httpClient := &http.Client{
+		Timeout: client.Timeout,
+	}
 	resp, err := httpClient.Do(req)
 	if err != nil {
 		logger.Error(err)
@@ -235,7 +245,9 @@ func (client *APIClient) AddFileTransfer(transfer *types.ReportFileTransfer) err
 
 	req.Header.Set("Content-Type", "application/json; charset=UTF-8")
 
-	httpClient := &http.Client{}
+	httpClient := &http.Client{
+		Timeout: client.Timeout,
+	}
 	req.Body = ioutil.NopCloser(bytes.NewReader(JSONBytes))
 	resp, err := httpClient.Do(req)
 	if err != nil {
@@ -265,7 +277,9 @@ func (client *APIClient) ListFileTransfers() ([]types.ReportFileTransfer, error)
 		return nil, err
 	}
 
-	httpClient := &http.Client{}
+	httpClient := &http.Client{
+		Timeout: client.Timeout,
+	}
 	resp, err := httpClient.Do(req)
 	if err != nil {
 		logger.Error(err)
@@ -307,7 +321,9 @@ func (client *APIClient) ListFileTransfersForInstance(instanceID string) ([]type
 		return nil, err
 	}
 
-	httpClient := &http.Client{}
+	httpClient := &http.Client{
+		Timeout: client.Timeout,
+	}
 	resp, err := httpClient.Do(req)
 	if err != nil {
 		logger.Error(err)
