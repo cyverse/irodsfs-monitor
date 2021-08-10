@@ -47,6 +47,7 @@ type ReportFileTransfer struct {
 	LargestBlockSize   int64       `json:"largest_block_size"`
 	SmallestBlockSize  int64       `json:"smallest_block_size"`
 	TransferBlockCount int64       `json:"transfer_block_count"`
+	SequentialAccess   bool        `json:"sequential_access"`
 
 	FileOpenTime  time.Time `json:"file_open_time"`
 	FileCloseTime time.Time `json:"file_close_time"`
