@@ -350,3 +350,36 @@ func (client *APIClient) ListFileTransfersForInstance(instanceID string) ([]type
 
 	return transfers, nil
 }
+
+// CleanUp clears all data
+func (client *APIClient) CleanUp() error {
+	logger := log.WithFields(log.Fields{
+		"package":  "client",
+		"function": "APIClient.CleanUp",
+	})
+
+	url := client.makeAPIURL("/cleanup")
+	req, err := http.NewRequest("DELETE", url, nil)
+	if err != nil {
+		logger.Error(err)
+		return err
+	}
+
+	req.Header.Set("Content-Type", "application/json; charset=UTF-8")
+
+	httpClient := &http.Client{
+		Timeout: client.Timeout,
+	}
+	resp, err := httpClient.Do(req)
+	if err != nil {
+		logger.Error(err)
+		return err
+	}
+
+	if resp.StatusCode != http.StatusAccepted && resp.StatusCode != http.StatusOK {
+		logger.Error(fmt.Sprintf("service error returned - %s", resp.Status))
+		return fmt.Errorf("service error returned - %s", resp.Status)
+	}
+
+	return nil
+}

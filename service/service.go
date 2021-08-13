@@ -51,6 +51,7 @@ func (svc *MonitorService) addHandlers() {
 	svc.Router.HandleFunc("/transfers", svc.addTransfer).Methods("POST")
 	svc.Router.HandleFunc("/transfers", svc.listTransfers).Methods("GET")
 	svc.Router.HandleFunc("/transfers/{instance_id}", svc.listTransfersForInstance).Methods("GET")
+	svc.Router.HandleFunc("/cleanup", svc.cleanUp).Methods("DELETE")
 }
 
 // Init initializes the service
@@ -342,4 +343,16 @@ func (svc *MonitorService) listTransfersForInstance(w http.ResponseWriter, r *ht
 		logger.Error(err)
 		return
 	}
+}
+
+func (svc *MonitorService) cleanUp(w http.ResponseWriter, r *http.Request) {
+	logger := log.WithFields(log.Fields{
+		"package":  "service",
+		"function": "MonitorService.cleanUp",
+	})
+
+	logger.Infof("Page access request (%s) from %s to %s", r.Method, r.RemoteAddr, r.RequestURI)
+
+	svc.Storage.CleanUp()
+	w.WriteHeader(http.StatusAccepted)
 }

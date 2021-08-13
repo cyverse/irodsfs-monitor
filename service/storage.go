@@ -2,16 +2,22 @@ package service
 
 import (
 	"fmt"
+	"sync"
 	"time"
 
 	"github.com/cyverse/irodsfs-monitor/types"
 	log "github.com/sirupsen/logrus"
 )
 
+const (
+	DataLifeSpanDays = 7
+)
+
 // Storage is a storage object
 type Storage struct {
 	Instances     map[string]types.ReportInstance
 	FileTransfers map[string][]types.ReportFileTransfer
+	Mutex         sync.Mutex
 }
 
 // NewStorage creates a storage
@@ -19,6 +25,7 @@ func NewStorage() *Storage {
 	return &Storage{
 		Instances:     map[string]types.ReportInstance{},
 		FileTransfers: map[string][]types.ReportFileTransfer{},
+		Mutex:         sync.Mutex{},
 	}
 }
 
@@ -46,6 +53,9 @@ func (storage *Storage) Destroy() {
 
 // ListInstances lists instances
 func (storage *Storage) ListInstances() []types.ReportInstance {
+	storage.Mutex.Lock()
+	defer storage.Mutex.Unlock()
+
 	result := []types.ReportInstance{}
 	for _, v := range storage.Instances {
 		result = append(result, v)
@@ -56,6 +66,9 @@ func (storage *Storage) ListInstances() []types.ReportInstance {
 
 // GetInstance returns instance
 func (storage *Storage) GetInstance(instanceID string) (types.ReportInstance, bool) {
+	storage.Mutex.Lock()
+	defer storage.Mutex.Unlock()
+
 	if v, ok := storage.Instances[instanceID]; ok {
 		return v, true
 	}
@@ -65,11 +78,20 @@ func (storage *Storage) GetInstance(instanceID string) (types.ReportInstance, bo
 
 // AddInstance adds an instance
 func (storage *Storage) AddInstance(instance types.ReportInstance) {
+	// clear old
+	storage.clearOld()
+
+	storage.Mutex.Lock()
+	defer storage.Mutex.Unlock()
+
 	storage.Instances[instance.InstanceID] = instance
 }
 
 // UpdateInstanceLastActivityTime updates the instance's last activity time
 func (storage *Storage) UpdateInstanceLastActivityTime(instanceID string) error {
+	storage.Mutex.Lock()
+	defer storage.Mutex.Unlock()
+
 	if instance, ok := storage.Instances[instanceID]; ok {
 		instance.LastActivityTime = time.Now().UTC()
 		storage.Instances[instanceID] = instance
@@ -81,6 +103,9 @@ func (storage *Storage) UpdateInstanceLastActivityTime(instanceID string) error 
 
 // TerminateInstance sets the instance terminated
 func (storage *Storage) TerminateInstance(instanceID string) error {
+	storage.Mutex.Lock()
+	defer storage.Mutex.Unlock()
+
 	if instance, ok := storage.Instances[instanceID]; ok {
 		instance.Terminated = true
 		instance.LastActivityTime = time.Now().UTC()
@@ -94,6 +119,9 @@ func (storage *Storage) TerminateInstance(instanceID string) error {
 
 // ListInstances lists instances
 func (storage *Storage) ListFileTransfers() []types.ReportFileTransfer {
+	storage.Mutex.Lock()
+	defer storage.Mutex.Unlock()
+
 	result := []types.ReportFileTransfer{}
 	for _, v := range storage.FileTransfers {
 		result = append(result, v...)
@@ -104,6 +132,9 @@ func (storage *Storage) ListFileTransfers() []types.ReportFileTransfer {
 
 // ListInstances lists instances
 func (storage *Storage) ListFileTransfersForInstance(instanceID string) []types.ReportFileTransfer {
+	storage.Mutex.Lock()
+	defer storage.Mutex.Unlock()
+
 	if v, ok := storage.FileTransfers[instanceID]; ok {
 		return v
 	}
@@ -113,6 +144,12 @@ func (storage *Storage) ListFileTransfersForInstance(instanceID string) []types.
 
 // AddInstance adds an instance
 func (storage *Storage) AddFileTransfer(transfer types.ReportFileTransfer) error {
+	// clear old
+	storage.clearOld()
+
+	storage.Mutex.Lock()
+	defer storage.Mutex.Unlock()
+
 	if _, ok := storage.Instances[transfer.InstanceID]; ok {
 		if existingList, ok2 := storage.FileTransfers[transfer.InstanceID]; ok2 {
 			existingList = append(existingList, transfer)
@@ -124,4 +161,47 @@ func (storage *Storage) AddFileTransfer(transfer types.ReportFileTransfer) error
 	}
 
 	return fmt.Errorf("unable to find an instance for ID %s", transfer.InstanceID)
+}
+
+// CleanUp clears all instance and transfer data
+func (storage *Storage) CleanUp() {
+	logger := log.WithFields(log.Fields{
+		"package":  "service",
+		"function": "Storage.CleanUp",
+	})
+
+	storage.Mutex.Lock()
+	defer storage.Mutex.Unlock()
+
+	storage.Instances = map[string]types.ReportInstance{}
+	storage.FileTransfers = map[string][]types.ReportFileTransfer{}
+
+	logger.Info("Cleaned up storage")
+}
+
+// clearOld clears old instance and transfer data
+func (storage *Storage) clearOld() {
+	logger := log.WithFields(log.Fields{
+		"package":  "service",
+		"function": "Storage.clearOld",
+	})
+
+	storage.Mutex.Lock()
+	defer storage.Mutex.Unlock()
+
+	instanceIDToBeRemoved := []string{}
+	lastWeek := time.Now().AddDate(0, 0, -1*DataLifeSpanDays)
+	for instanceID, instance := range storage.Instances {
+		if instance.CreationTime.Before(lastWeek) {
+			// delete
+			instanceIDToBeRemoved = append(instanceIDToBeRemoved, instanceID)
+		}
+	}
+
+	for _, instanceID := range instanceIDToBeRemoved {
+		delete(storage.FileTransfers, instanceID)
+		delete(storage.Instances, instanceID)
+	}
+
+	logger.Info("Cleaned up old data")
 }
