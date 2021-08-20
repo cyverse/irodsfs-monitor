@@ -2,6 +2,7 @@ package service
 
 import (
 	"fmt"
+	"sort"
 	"sync"
 	"time"
 
@@ -61,6 +62,10 @@ func (storage *Storage) ListInstances() []types.ReportInstance {
 		result = append(result, v)
 	}
 
+	sort.SliceStable(result, func(i int, j int) bool {
+		return result[i].CreationTime.Before(result[j].CreationTime)
+	})
+
 	return result
 }
 
@@ -79,7 +84,7 @@ func (storage *Storage) GetInstance(instanceID string) (types.ReportInstance, bo
 // AddInstance adds an instance
 func (storage *Storage) AddInstance(instance types.ReportInstance) {
 	// clear old
-	storage.clearOld()
+	storage.clearAWeekOld()
 
 	storage.Mutex.Lock()
 	defer storage.Mutex.Unlock()
@@ -145,7 +150,7 @@ func (storage *Storage) ListFileTransfersForInstance(instanceID string) []types.
 // AddInstance adds an instance
 func (storage *Storage) AddFileTransfer(transfer types.ReportFileTransfer) error {
 	// clear old
-	storage.clearOld()
+	storage.clearAWeekOld()
 
 	storage.Mutex.Lock()
 	defer storage.Mutex.Unlock()
@@ -180,7 +185,7 @@ func (storage *Storage) CleanUp() {
 }
 
 // clearOld clears old instance and transfer data
-func (storage *Storage) clearOld() {
+func (storage *Storage) clearOld(daysOld int) {
 	logger := log.WithFields(log.Fields{
 		"package":  "service",
 		"function": "Storage.clearOld",
@@ -190,7 +195,7 @@ func (storage *Storage) clearOld() {
 	defer storage.Mutex.Unlock()
 
 	instanceIDToBeRemoved := []string{}
-	lastWeek := time.Now().AddDate(0, 0, -1*DataLifeSpanDays)
+	lastWeek := time.Now().AddDate(0, 0, -1*daysOld)
 	for instanceID, instance := range storage.Instances {
 		if instance.CreationTime.Before(lastWeek) {
 			// delete
@@ -203,5 +208,10 @@ func (storage *Storage) clearOld() {
 		delete(storage.Instances, instanceID)
 	}
 
-	logger.Info("Cleaned up old data")
+	logger.Infof("Cleaned up old data that are %d days old", daysOld)
+}
+
+// clearAWeekOld clears old instance and transfer data
+func (storage *Storage) clearAWeekOld() {
+	storage.clearOld(DataLifeSpanDays)
 }

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"strconv"
 	"strings"
 	"time"
 
@@ -53,6 +54,7 @@ func (svc *MonitorService) addHandlers() {
 	svc.Router.HandleFunc("/transfers", svc.listTransfers).Methods("GET")
 	svc.Router.HandleFunc("/transfers/{instance_id}", svc.listTransfersForInstance).Methods("GET")
 	svc.Router.HandleFunc("/cleanup", svc.cleanUp).Methods("DELETE")
+	svc.Router.HandleFunc("/cleanup/{days}", svc.cleanUpDaysOld).Methods("DELETE")
 }
 
 // Init initializes the service
@@ -360,5 +362,32 @@ func (svc *MonitorService) cleanUp(w http.ResponseWriter, r *http.Request) {
 	logger.Infof("Page access request (%s) from %s to %s", r.Method, r.RemoteAddr, r.RequestURI)
 
 	svc.Storage.CleanUp()
+	w.WriteHeader(http.StatusAccepted)
+}
+
+func (svc *MonitorService) cleanUpDaysOld(w http.ResponseWriter, r *http.Request) {
+	logger := log.WithFields(log.Fields{
+		"package":  "service",
+		"function": "MonitorService.cleanUpDaysOld",
+	})
+
+	logger.Infof("Page access request (%s) from %s to %s", r.Method, r.RemoteAddr, r.RequestURI)
+
+	varMap := mux.Vars(r)
+	daysString, ok := varMap["days"]
+	if !ok {
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte("days is not given"))
+		return
+	}
+
+	days, err := strconv.Atoi(daysString)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte("days is not number"))
+		return
+	}
+
+	svc.Storage.clearOld(days)
 	w.WriteHeader(http.StatusAccepted)
 }
