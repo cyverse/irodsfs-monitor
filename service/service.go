@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/cyverse/irodsfs-monitor/types"
@@ -103,6 +104,11 @@ func (svc *MonitorService) getClientIP(r *http.Request) string {
 		addr = r.RemoteAddr
 	}
 
+	// erase port number
+	addrs := strings.Split(addr, ":")
+	if len(addrs) > 0 {
+		addr = addrs[0]
+	}
 	return addr
 }
 

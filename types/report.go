@@ -39,8 +39,9 @@ type FileBlock struct {
 type ReportFileTransfer struct {
 	InstanceID string `json:"instance_id"`
 
-	FilePath string `json:"file_path"`
-	FileSize int64  `json:"file_size"`
+	FilePath     string `json:"file_path"`
+	FileSize     int64  `json:"file_size"`
+	FileOpenMode string `json:"file_open_mode"`
 
 	TransferBlocks     []FileBlock `json:"transfer_blocks"`
 	TransferSize       int64       `json:"transfer_size"`
