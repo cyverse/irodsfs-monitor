@@ -58,7 +58,7 @@ func processArguments() (*service.Config, error, bool) {
 	if len(config.LogPath) > 0 {
 		logFile, err := os.OpenFile(config.LogPath, os.O_WRONLY|os.O_CREATE, 0755)
 		if err != nil {
-			logger.WithError(err).Error("Could not create log file - %s", config.LogPath)
+			logger.WithError(err).Errorf("Could not create log file - %s", config.LogPath)
 		} else {
 			log.SetOutput(logFile)
 		}
