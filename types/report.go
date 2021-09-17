@@ -16,7 +16,7 @@ type ReportInstance struct {
 	ConnectionMax            int    `json:"connection_max"`
 	MetadataCacheTimeout     string `json:"metadata_cache_timeout"`
 	MetadataCacheCleanupTime string `json:"metadata_cache_cleanup_time"`
-	FileBufferSizeMax        int64  `json:"file_buffer_size_max"`
+	BufferSizeMax            int64  `json:"buffer_size_max"`
 
 	ProxyHost string `json:"proxy_host"`
 	ProxyPort int    `json:"proxy_port"`
