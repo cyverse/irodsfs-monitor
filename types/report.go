@@ -18,8 +18,8 @@ type ReportInstance struct {
 	MetadataCacheCleanupTime string `json:"metadata_cache_cleanup_time"`
 	BufferSizeMax            int64  `json:"buffer_size_max"`
 
-	ProxyHost string `json:"proxy_host"`
-	ProxyPort int    `json:"proxy_port"`
+	PoolHost string `json:"pool_host"`
+	PoolPort int    `json:"pool_port"`
 
 	ClientHostname string `json:"client_hostname,omitempty"`
 	ClientHostIP   string `json:"client_host_ip,omitempty"` // filled by server
