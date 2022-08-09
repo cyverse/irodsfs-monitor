@@ -90,7 +90,7 @@ func processArguments() (*service.Config, error, bool) {
 			return nil, err, true
 		}
 
-		err = yaml.Unmarshal(yamlBytes, &config)
+		err = yaml.Unmarshal(yamlBytes, config)
 		if err != nil {
 			return nil, fmt.Errorf("YAML Unmarshal Error - %v", err), true
 		}
@@ -121,7 +121,7 @@ func processArguments() (*service.Config, error, bool) {
 			return nil, err, true
 		}
 
-		err = yaml.Unmarshal(yamlBytes, &config)
+		err = yaml.Unmarshal(yamlBytes, config)
 		if err != nil {
 			return nil, fmt.Errorf("YAML Unmarshal Error - %v", err), true
 		}
